@@ -1,15 +1,15 @@
 # Building Envoy
 
-The instructions provided below specify the steps to build [Envoy](https://www.envoyproxy.io/) version 1.29.2 on Linux on IBM Z for the following distributions:
+The DRAFT instructions provided below specify the steps to build [Envoy](https://www.envoyproxy.io/) version 1.29.2 on Linux on IBM Z for the following distributions:
 *   Ubuntu (22.04)
 
 _**General Notes:**_
 *   _When following the steps below please use a standard permission user unless otherwise specified._
 *   _A directory `/<source_root>/` will be referred to in these instructions, this is a temporary writable directory anywhere you'd like to place it._
 
-### Build and Install Envoy
+## Build and Install Envoy
 
-#### Step 1: Build using script
+### Step 1: Build using script
 
 If you want to build Envoy using manual steps, go to Step 2.
 
@@ -22,7 +22,7 @@ bash build_envoy.sh   [Provide -t option for executing build with tests]
 
 In case of error, check `logs` for more details or go to STEP 2 to follow manual build steps.
 
-#### Step 2: Install dependencies
+### Step 2: Install dependencies
 
 ```bash
 export SOURCE_ROOT=/<source_root>/
@@ -120,7 +120,7 @@ export SOURCE_ROOT=/<source_root>/
     cp $SOURCE_ROOT/patch/pkgconfig-valgrind.patch toolchains/pkgconfig-valgrind.patch
     ```
 
-#### Step 3: Build and Install Envoy
+### Step 3: Build and Install Envoy
 
 *   Download Envoy and Apply Patches
     ```bash
@@ -132,7 +132,6 @@ export SOURCE_ROOT=/<source_root>/
     ```bash
     # Apply patches-
     git apply $SOURCE_ROOT/patch/envoy_patch.diff
-    git apply $SOURCE_ROOT/patch/luajit_patch.diff
 
     # Patch for failing tests
     git apply $SOURCE_ROOT/patch/envoy-test.patch
@@ -161,7 +160,7 @@ export SOURCE_ROOT=/<source_root>/
     bazel-bin/source/exe/envoy-static  version: 2092d65bd4d476be8235ea541e5d25c096b513e6/1.29.2/Modified/RELEASE/BoringSSL
     ```
 
-#### Step 4: Test (optional)
+### Step 4: Test (optional)
 ```bash
 cd $SOURCE_ROOT/envoy
 bazel test //test/... -c opt --override_repository=rules_foreign_cc=${SOURCE_ROOT}/rules_foreign_cc --config=clang --keep_going --test_output=all
@@ -182,5 +181,5 @@ _**Notes:**_
 bazel test //test/... -c opt --override_repository=rules_foreign_cc=${SOURCE_ROOT}/rules_foreign_cc --config=clang --keep_going --test_output=all --test_env=HEAPCHECK=
 ```
 
-#### References:
+### References:
 - https://github.com/envoyproxy/envoy/blob/v1.29.2/bazel/README.md
