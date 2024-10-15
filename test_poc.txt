@@ -1,0 +1,91 @@
+Introduction
+Below document contains various errors and fixes seen for build failures of various packages on s390x platform which is Big endian Linux platform.
+
+Scenario 1: Dependencies missing during build 
+Example 1:
+Error - mvn: command not found
+Solution - On Ubuntu run below command to fix the error:
+sudo apt-get install maven 
+Example 2:
+Error -  java: command not found
+Solution - On Ubuntu run below command to fix the error:
+sudo apt-get install openjdk-17-jdk
+
+ Example 3:
+Error - fatal error: Python.h: No such file or directory
+Solution – Run command “sudo apt-get install python3-dev” 
+
+Example 4:
+Error - gcc: command not found
+Solution - Run command “sudo apt-get install gcc”
+
+Example 5:
+Error - error: loading 'build.ninja': No such file or directory
+Solution - Run command “sudo  apt-get install ninja-build”
+
+Example 6:
+Error -  ModuleNotFoundError: No module named 'numpy’
+Solution – Run command “sudo apt-get install python3-pip && pip3 install numpy”
+
+Scenario 2: Add missing go target in Makefile or other related files in go based package
+This usually involves adding GOARCH=s390x as the target to 'go build' command and accordingly change any other commands which use the build output.
+Consider below Makefile enclosed in **** . 
+****
+# generates openapi_generated.go
+.PHONY: gen-openapi
+gen-openapi: $(DIST_DIR)/openapi-gen ## generate openapi files
+	PATH=${DIST_DIR}:$$PATH GOPATH=${GOPATH} openapi-gen \
+		--go-header-file ${CURRENT_DIR}/hack/custom-boilerplate.go.txt \
+		--input-dirs github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1 \
+		--output-package github.com/argoproj/argo-rollouts/pkg/apis/rollouts/v1alpha1 \
+		--report-filename pkg/apis/api-rules/violation_exceptions.list
+
+##@ Plugins
+
+.PHONY: plugin
+plugin: ui/dist ## build plugin
+	cp -r ui/dist/app/* server/static
+	CGO_ENABLED=0 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME} ./cmd/kubectl-argo-rollouts
+
+ui/dist:
+	yarn --cwd ui install
+	yarn --cwd ui build
+
+.PHONY: plugin-linux
+plugin-linux: ui/dist ## build plugin for linux
+	cp -r ui/dist/app/* server/static
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-linux-amd64 ./cmd/kubectl-argo-rollouts
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-linux-arm64 ./cmd/kubectl-argo-rollouts
+
+.PHONY: plugin-darwin
+plugin-darwin: ui/dist ## build plugin for darwin
+	cp -r ui/dist/app/* server/static
+	CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-darwin-amd64 ./cmd/kubectl-argo-rollouts
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-darwin-arm64 ./cmd/kubectl-argo-rollouts
+
+.PHONY: plugin-windows
+plugin-windows: ui/dist  ## build plugin for windows
+	cp -r ui/dist/app/* server/static
+	CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-windows-amd64 ./cmd/kubectl-argo-rollouts
+****
+Changes for adding s390x code changes are as shared in below git diff enclosed in ####
+####
+diff
+diff  --git a/Makefile b/Makefile
+---a/Makefile
++++b/Makefile
+
+.PHONY: plugin-linux
+plugin-linux: ui/dist ## build plugin for linux
+	cp -r ui/dist/app/* server/static
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-linux-amd64 ./cmd/kubectl-argo-rollouts
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-linux-arm64 ./cmd/kubectl-argo-rollouts
++	CGO_ENABLED=0 GOOS=linux GOARCH=s390x go build -v -ldflags '${LDFLAGS}' -o ${DIST_DIR}/${PLUGIN_CLI_NAME}-linux-s390x ./cmd/kubectl-argo-rollouts
+
+.PHONY: plugin-darwin
+plugin-darwin: ui/dist ## build plugin for darwin
+	cp -r ui/dist/app/* server/static
+####
+
+
+I want you to only reply with the terminal output inside one unique code block, and nothing else. do not write explanations.
